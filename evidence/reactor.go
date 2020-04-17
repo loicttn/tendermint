@@ -34,7 +34,7 @@ func NewEvidenceReactor(evpool *EvidencePool) *EvidenceReactor {
 	evR := &EvidenceReactor{
 		evpool: evpool,
 	}
-	evR.BaseReactor = *p2p.NewBaseReactor("Evidence", evR)
+	evR.BaseReactor = *p2p.NewBaseReactor("EvidenceReactor", evR)
 	return evR
 }
 
