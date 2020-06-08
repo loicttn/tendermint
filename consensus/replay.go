@@ -305,7 +305,7 @@ func (h *Handshaker) ReplayBlocks(
 		for i, val := range h.genDoc.Validators {
 			validators[i] = types.NewValidator(val.PubKey, val.Power)
 		}
-		validatorSet := types.NewValidatorSet(validators)
+		validatorSet := types.NewValidatorSet(state.LastBlockID.Hash, validators)
 		nextVals := types.TM2PB.ValidatorUpdates(validatorSet)
 		csParams := types.TM2PB.ConsensusParams(h.genDoc.ConsensusParams)
 		req := abci.RequestInitChain{
@@ -327,8 +327,8 @@ func (h *Handshaker) ReplayBlocks(
 				if err != nil {
 					return nil, err
 				}
-				state.Validators = types.NewValidatorSet(vals)
-				state.NextValidators = types.NewValidatorSet(vals)
+				state.Validators = types.NewValidatorSet(state.LastBlockID.Hash, vals)
+				state.NextValidators = types.NewValidatorSet(state.LastBlockID.Hash, vals)
 			} else if len(h.genDoc.Validators) == 0 {
 				// If validator set is not set in genesis and still empty after InitChain, exit.
 				return nil, fmt.Errorf("validator set is nil in genesis and still empty after InitChain")

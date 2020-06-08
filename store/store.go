@@ -78,7 +78,7 @@ func (bs *BlockStore) LoadBlock(height int64) *types.Block {
 // If no part is found for the given height and index, it returns nil.
 func (bs *BlockStore) LoadBlockPart(height int64, index int) *types.Part {
 	var part = new(types.Part)
-	bz := bs.db.Get(calcBlockPartKey(height, index))
+	bz, _ := bs.db.Get(calcBlockPartKey(height, index))
 	if len(bz) == 0 {
 		return nil
 	}
@@ -93,7 +93,7 @@ func (bs *BlockStore) LoadBlockPart(height int64, index int) *types.Part {
 // If no block is found for the given height, it returns nil.
 func (bs *BlockStore) LoadBlockMeta(height int64) *types.BlockMeta {
 	var blockMeta = new(types.BlockMeta)
-	bz := bs.db.Get(calcBlockMetaKey(height))
+	bz, _ := bs.db.Get(calcBlockMetaKey(height))
 	if len(bz) == 0 {
 		return nil
 	}
@@ -110,7 +110,7 @@ func (bs *BlockStore) LoadBlockMeta(height int64) *types.BlockMeta {
 // If no commit is found for the given height, it returns nil.
 func (bs *BlockStore) LoadBlockCommit(height int64) *types.Commit {
 	var commit = new(types.Commit)
-	bz := bs.db.Get(calcBlockCommitKey(height))
+	bz, _ := bs.db.Get(calcBlockCommitKey(height))
 	if len(bz) == 0 {
 		return nil
 	}
@@ -126,7 +126,7 @@ func (bs *BlockStore) LoadBlockCommit(height int64) *types.Commit {
 // a new block at `height + 1` that includes this commit in its block.LastCommit.
 func (bs *BlockStore) LoadSeenCommit(height int64) *types.Commit {
 	var commit = new(types.Commit)
-	bz := bs.db.Get(calcSeenCommitKey(height))
+	bz, _ := bs.db.Get(calcSeenCommitKey(height))
 	if len(bz) == 0 {
 		return nil
 	}
@@ -234,7 +234,7 @@ func (bsj BlockStoreStateJSON) Save(db dbm.DB) {
 // LoadBlockStoreStateJSON returns the BlockStoreStateJSON as loaded from disk.
 // If no BlockStoreStateJSON was previously persisted, it returns the zero value.
 func LoadBlockStoreStateJSON(db dbm.DB) BlockStoreStateJSON {
-	bytes := db.Get(blockStoreKey)
+	bytes, _ := db.Get(blockStoreKey)
 	if len(bytes) == 0 {
 		return BlockStoreStateJSON{
 			Height: 0,

@@ -97,7 +97,7 @@ func (store *EvidenceStore) PendingEvidence(maxNum int64) (evidence []types.Evid
 // If maxNum is -1, there's no cap on the size of returned evidence.
 func (store *EvidenceStore) listEvidence(prefixKey string, maxNum int64) (evidence []types.Evidence) {
 	var count int64
-	iter := dbm.IteratePrefix(store.db, []byte(prefixKey))
+	iter, _ := dbm.IteratePrefix(store.db, []byte(prefixKey))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		val := iter.Value()
@@ -121,7 +121,7 @@ func (store *EvidenceStore) listEvidence(prefixKey string, maxNum int64) (eviden
 // If not found, ei.Evidence is nil.
 func (store *EvidenceStore) GetEvidenceInfo(height int64, hash []byte) EvidenceInfo {
 	key := keyLookupFromHeightAndHash(height, hash)
-	val := store.db.Get(key)
+	val, _ := store.db.Get(key)
 
 	if len(val) == 0 {
 		return EvidenceInfo{}

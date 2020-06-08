@@ -58,14 +58,14 @@ type ValidatorSet struct {
 // function panics.
 // Note the validator set size has an implied limit equal to that of the MaxVotesCount -
 // commits by a validator set larger than this will fail validation.
-func NewValidatorSet(valz []*Validator) *ValidatorSet {
+func NewValidatorSet(hash []byte, valz []*Validator) *ValidatorSet {
 	vals := &ValidatorSet{}
 	err := vals.updateWithChangeSet(valz, false)
 	if err != nil {
 		panic(fmt.Sprintf("cannot create validator set: %s", err))
 	}
 	if len(valz) > 0 {
-		vals.IncrementProposerPriority(1)
+		vals.IncrementProposerPriority(hash, 1, 1)
 	}
 	return vals
 }
@@ -76,23 +76,25 @@ func (vals *ValidatorSet) IsNilOrEmpty() bool {
 }
 
 // Increment ProposerPriority and update the proposer on a copy, and return it.
-func (vals *ValidatorSet) CopyIncrementProposerPriority(times int) *ValidatorSet {
+func (vals *ValidatorSet) CopyIncrementProposerPriority(hash []byte, round uint64, times int) *ValidatorSet {
 	copy := vals.Copy()
-	copy.IncrementProposerPriority(times)
+	copy.IncrementProposerPriority(hash, round, times)
 	return copy
 }
 
 // IncrementProposerPriority increments ProposerPriority of each validator and updates the
 // proposer. Panics if validator set is empty.
 // `times` must be positive.
-func (vals *ValidatorSet) IncrementProposerPriority(times int) {
+func (vals *ValidatorSet) IncrementProposerPriority(hash []byte, round uint64, times int) {
 	if vals.IsNilOrEmpty() {
 		panic("empty validator set")
 	}
 	if times <= 0 {
 		panic("Cannot call IncrementProposerPriority with non-positive times")
 	}
-
+	if hash == nil {
+		hash = vals.Hash()
+	}
 	// Cap the difference between priorities to be proportional to 2*totalPower by
 	// re-normalizing priorities, i.e., rescale all priorities by multiplying with:
 	//  2*totalVotingPower/(maxPriority - minPriority)
@@ -103,7 +105,7 @@ func (vals *ValidatorSet) IncrementProposerPriority(times int) {
 	var proposer *Validator
 	// Call IncrementProposerPriority(1) times times.
 	for i := 0; i < times; i++ {
-		proposer = vals.incrementProposerPriority()
+		proposer = vals.incrementProposerPriority(hash, round)
 	}
 
 	vals.Proposer = proposer
@@ -132,18 +134,17 @@ func (vals *ValidatorSet) RescalePriorities(diffMax int64) {
 	}
 }
 
-func (vals *ValidatorSet) incrementProposerPriority() *Validator {
+func (vals *ValidatorSet) incrementProposerPriority(hash []byte, round uint64) *Validator {
 	for _, val := range vals.Validators {
 		// Check for overflow for sum.
 		newPrio := safeAddClip(val.ProposerPriority, val.VotingPower)
 		val.ProposerPriority = newPrio
 	}
-	// Decrement the validator with most ProposerPriority.
-	mostest := vals.getValWithMostPriority()
-	// Mind the underflow.
-	mostest.ProposerPriority = safeSubClip(mostest.ProposerPriority, vals.TotalVotingPower())
-
-	return mostest
+	//// Decrement the validator with most ProposerPriority.
+	//mostest := vals.getValWithMostPriority()
+	//// Mind the underflow.
+	//mostest.ProposerPriority = safeSubClip(mostest.ProposerPriority, vals.TotalVotingPower())
+	return vals.GetProposerRandomized(hash, round)
 }
 
 // Should not be called on an empty validator set.
@@ -880,7 +881,7 @@ func RandValidatorSet(numValidators int, votingPower int64) (*ValidatorSet, []Pr
 		valz[i] = val
 		privValidators[i] = privValidator
 	}
-	vals := NewValidatorSet(valz)
+	vals := NewValidatorSet(nil, valz)
 	sort.Sort(PrivValidatorsByAddress(privValidators))
 	return vals, privValidators
 }

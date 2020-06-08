@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strconv"
 
-	amino "github.com/tendermint/go-amino"
+	"github.com/tendermint/go-amino"
 	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
-	log "github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/libs/log"
 	lerr "github.com/tendermint/tendermint/lite/errors"
 	"github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
@@ -108,7 +108,7 @@ func (dbp *DBProvider) LatestFullCommit(chainID string, minHeight, maxHeight int
 		maxHeight = 1<<63 - 1
 	}
 
-	itr := dbp.db.ReverseIterator(
+	itr, _ := dbp.db.ReverseIterator(
 		signedHeaderKey(chainID, minHeight),
 		append(signedHeaderKey(chainID, maxHeight), byte(0x00)),
 	)
@@ -149,7 +149,10 @@ func (dbp *DBProvider) ValidatorSet(chainID string, height int64) (valset *types
 }
 
 func (dbp *DBProvider) getValidatorSet(chainID string, height int64) (valset *types.ValidatorSet, err error) {
-	vsBz := dbp.db.Get(validatorSetKey(chainID, height))
+	vsBz, err := dbp.db.Get(validatorSetKey(chainID, height))
+	if err != nil {
+		return nil, err
+	}
 	if vsBz == nil {
 		err = lerr.ErrUnknownValidators(chainID, height)
 		return
@@ -193,10 +196,13 @@ func (dbp *DBProvider) deleteAfterN(chainID string, after int) error {
 
 	dbp.logger.Info("DBProvider.deleteAfterN()...", "chainID", chainID, "after", after)
 
-	itr := dbp.db.ReverseIterator(
+	itr, err := dbp.db.ReverseIterator(
 		signedHeaderKey(chainID, 1),
 		append(signedHeaderKey(chainID, 1<<63-1), byte(0x00)),
 	)
+	if err != nil {
+		return err
+	}
 	defer itr.Close()
 
 	var lastHeight int64 = 1<<63 - 1

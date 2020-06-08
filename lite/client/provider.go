@@ -111,7 +111,11 @@ func (p *provider) getValidatorSet(chainID string, height int64) (valset *types.
 		// TODO pass through other types of errors.
 		return nil, lerr.ErrUnknownValidators(chainID, height)
 	}
-	valset = types.NewValidatorSet(res.Validators)
+	comm, err := p.fetchLatestCommit(height, 0)
+	if err != nil {
+		return nil, err
+	}
+	valset = types.NewValidatorSet(comm.LastBlockID.Hash, res.Validators)
 	return
 }
 

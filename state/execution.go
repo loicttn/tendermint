@@ -330,7 +330,7 @@ func getBeginBlockValidatorInfo(block *types.Block, stateDB dbm.DB) (abci.LastCo
 				precommitLen, valSetLen, block.Height, block.LastCommit.Precommits, lastValSet.Validators))
 		}
 	} else {
-		lastValSet = types.NewValidatorSet(nil)
+		lastValSet = types.NewValidatorSet(block.LastBlockID.Hash, nil)
 	}
 
 	for i, val := range lastValSet.Validators {
@@ -410,7 +410,7 @@ func updateState(
 	}
 
 	// Update validator proposer priority and set state variables.
-	nValSet.IncrementProposerPriority(1)
+	nValSet.IncrementProposerPriority(blockID.Hash, 1,1)
 
 	// Update the params with the latest abciResponses.
 	nextParams := state.ConsensusParams

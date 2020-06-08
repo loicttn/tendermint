@@ -830,7 +830,7 @@ func (cs *ConsensusState) enterNewRound(height int64, round int) {
 	validators := cs.Validators
 	if cs.Round < round {
 		validators = validators.Copy()
-		validators.IncrementProposerPriority(round - cs.Round)
+		validators.IncrementProposerPriority(cs.GetPreviousBlockHash(), uint64(cs.Round), round - cs.Round)
 	}
 
 	// Setup new round
@@ -1888,5 +1888,5 @@ func (cs *ConsensusState) GetPreviousBlockHash() []byte {
 	if cs.Height <= 2 {
 		return cs.Validators.Hash()
 	}
-	return cs.blockStore.LoadBlock(cs.blockStore.Height()).Hash()
+	return cs.blockStore.LoadBlock(cs.blockStore.Height()).LastBlockID.Hash
 }
