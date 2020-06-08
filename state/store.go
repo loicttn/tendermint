@@ -187,32 +187,32 @@ func (valInfo *ValidatorsInfo) Bytes() []byte {
 // Returns ErrNoValSetForHeight if the validator set can't be found for this height.
 func LoadValidators(db dbm.DB, height int64) (*types.ValidatorSet, error) {
 	valInfo := loadValidatorsInfo(db, height)
-	if valInfo == nil || valInfo.ValidatorSet == nil {
+	if valInfo == nil {
 		return nil, ErrNoValSetForHeight{height}
 	}
-	//if valInfo.ValidatorSet == nil {
-	//	lastStoredHeight := lastStoredHeightFor(height, valInfo.LastHeightChanged)
-	//	valInfo2 := loadValidatorsInfo(db, lastStoredHeight)
-	//	if valInfo2 == nil || valInfo2.ValidatorSet == nil {
-	//		// TODO (melekes): remove the below if condition in the 0.33 major
-	//		// release and just panic. Old chains might panic otherwise if they
-	//		// haven't saved validators at intermediate (%valSetCheckpointInterval)
-	//		// height yet.
-	//		// https://github.com/tendermint/tendermint/issues/3543
-	//		valInfo2 = loadValidatorsInfo(db, valInfo.LastHeightChanged)
-	//		lastStoredHeight = valInfo.LastHeightChanged
-	//		if valInfo2 == nil || valInfo2.ValidatorSet == nil {
-	//			panic(
-	//				fmt.Sprintf("Couldn't find validators at height %d (height %d was originally requested)",
-	//					lastStoredHeight,
-	//					height,
-	//				),
-	//			)
-	//		}
-	//	}
-	//	valInfo2.ValidatorSet.IncrementProposerPriority(int(height - lastStoredHeight)) // mutate
-	//	valInfo = valInfo2
-	//}
+	if valInfo.ValidatorSet == nil {
+		lastStoredHeight := lastStoredHeightFor(height, valInfo.LastHeightChanged)
+		valInfo2 := loadValidatorsInfo(db, lastStoredHeight)
+		if valInfo2 == nil || valInfo2.ValidatorSet == nil {
+			// TODO (melekes): remove the below if condition in the 0.33 major
+			// release and just panic. Old chains might panic otherwise if they
+			// haven't saved validators at intermediate (%valSetCheckpointInterval)
+			// height yet.
+			// https://github.com/tendermint/tendermint/issues/3543
+			valInfo2 = loadValidatorsInfo(db, valInfo.LastHeightChanged)
+			lastStoredHeight = valInfo.LastHeightChanged
+			if valInfo2 == nil || valInfo2.ValidatorSet == nil {
+				panic(
+					fmt.Sprintf("Couldn't find validators at height %d (height %d was originally requested)",
+						lastStoredHeight,
+						height,
+					),
+				)
+			}
+		}
+		valInfo2.ValidatorSet.IncrementProposerPriority(nil, 1, int(height - lastStoredHeight)) // mutate
+		valInfo = valInfo2
+	}
 
 	return valInfo.ValidatorSet, nil
 }
