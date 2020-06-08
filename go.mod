@@ -3,7 +3,6 @@ module github.com/pokt-network/tendermint
 go 1.12
 
 require (
-	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
 	github.com/Workiva/go-datastructures v1.0.52
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/btcutil v1.0.2
@@ -14,10 +13,8 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.0
 	github.com/gorilla/websocket v1.4.2
-	github.com/gtank/merlin v0.1.1 // indirect
 	github.com/libp2p/go-buffer-pool v0.0.2
 	github.com/magiconair/properties v1.8.1
-	github.com/minio/highwayhash v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
