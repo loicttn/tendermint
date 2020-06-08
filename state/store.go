@@ -71,7 +71,7 @@ func LoadState(db dbm.DB) State {
 }
 
 func loadState(db dbm.DB, key []byte) (state State) {
-	buf, _ := db.Get(key)
+	buf := db.Get(key)
 	if len(buf) == 0 {
 		return state
 	}
@@ -146,16 +146,13 @@ func (arz *ABCIResponses) ResultsHash() []byte {
 // This is useful for recovering from crashes where we called app.Commit and before we called
 // s.Save(). It can also be used to produce Merkle proofs of the result of txs.
 func LoadABCIResponses(db dbm.DB, height int64) (*ABCIResponses, error) {
-	buf, err := db.Get(calcABCIResponsesKey(height))
-	if err != nil {
-		return nil, err
-	}
+	buf := db.Get(calcABCIResponsesKey(height))
 	if len(buf) == 0 {
 		return nil, ErrNoABCIResponsesForHeight{height}
 	}
 
 	abciResponses := new(ABCIResponses)
-	err = cdc.UnmarshalBinaryBare(buf, abciResponses)
+	err := cdc.UnmarshalBinaryBare(buf, abciResponses)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		cmn.Exit(fmt.Sprintf(`LoadABCIResponses: Data has been corrupted or its spec has
@@ -227,7 +224,7 @@ func lastStoredHeightFor(height, lastHeightChanged int64) int64 {
 
 // CONTRACT: Returned ValidatorsInfo can be mutated.
 func loadValidatorsInfo(db dbm.DB, height int64) *ValidatorsInfo {
-	buf, _ := db.Get(calcValidatorsKey(height))
+	buf := db.Get(calcValidatorsKey(height))
 	if len(buf) == 0 {
 		return nil
 	}
@@ -304,10 +301,11 @@ func LoadConsensusParams(db dbm.DB, height int64) (types.ConsensusParams, error)
 }
 
 func loadConsensusParamsInfo(db dbm.DB, height int64) *ConsensusParamsInfo {
-	buf, _ := db.Get(calcConsensusParamsKey(height))
+	buf := db.Get(calcConsensusParamsKey(height))
 	if len(buf) == 0 {
 		return nil
 	}
+
 	paramsInfo := new(ConsensusParamsInfo)
 	err := cdc.UnmarshalBinaryBare(buf, paramsInfo)
 	if err != nil {

@@ -62,7 +62,7 @@ type DBProvider func(*DBContext) (dbm.DB, error)
 // DefaultDBProvider returns a database using the DBBackend and DBDir
 // specified in the ctx.Config.
 func DefaultDBProvider(ctx *DBContext) (dbm.DB, error) {
-	dbType := dbm.BackendType(ctx.Config.DBBackend)
+	dbType := dbm.DBBackendType(ctx.Config.DBBackend)
 	return dbm.NewDB(ctx.ID, dbType, ctx.Config.DBDir()), nil
 }
 
@@ -1157,15 +1157,12 @@ func LoadStateFromDBOrGenesisDocProvider(
 
 // panics if failed to unmarshal bytes
 func loadGenesisDoc(db dbm.DB) (*types.GenesisDoc, error) {
-	b, err := db.Get(genesisDocKey)
-	if err != nil {
-		return nil, err
-	}
+	b := db.Get(genesisDocKey)
 	if len(b) == 0 {
 		return nil, errors.New("Genesis doc not found")
 	}
 	var genDoc *types.GenesisDoc
-	err = cdc.UnmarshalJSON(b, &genDoc)
+	err := cdc.UnmarshalJSON(b, &genDoc)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to load genesis doc due to unmarshaling error: %v (bytes: %X)", err, b))
 	}

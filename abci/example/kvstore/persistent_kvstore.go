@@ -94,7 +94,7 @@ func (app *PersistentKVStoreApplication) Query(reqQuery types.RequestQuery) (res
 	switch reqQuery.Path {
 	case "/val":
 		key := []byte("val:" + string(reqQuery.Data))
-		value, _ := app.app.state.db.Get(key)
+		value := app.app.state.db.Get(key)
 
 		resQuery.Key = reqQuery.Data
 		resQuery.Value = value
@@ -144,7 +144,7 @@ func (app *PersistentKVStoreApplication) EndBlock(req types.RequestEndBlock) typ
 // update validators
 
 func (app *PersistentKVStoreApplication) Validators() (validators []types.ValidatorUpdate) {
-	itr, _ := app.app.state.db.Iterator(nil, nil)
+	itr := app.app.state.db.Iterator(nil, nil)
 	for ; itr.Valid(); itr.Next() {
 		if isValidatorTx(itr.Key()) {
 			validator := new(types.ValidatorUpdate)
@@ -210,7 +210,7 @@ func (app *PersistentKVStoreApplication) updateValidator(v types.ValidatorUpdate
 
 	if v.Power == 0 {
 		// remove validator
-		if ok, _ := app.app.state.db.Has(key); !ok {
+		if !app.app.state.db.Has(key) {
 			pubStr := base64.StdEncoding.EncodeToString(v.PubKey.Data)
 			return types.ResponseDeliverTx{
 				Code: code.CodeTypeUnauthorized,
